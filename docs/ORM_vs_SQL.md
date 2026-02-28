@@ -1,4 +1,4 @@
-# Raw SQL vs ORM Query Comparison
+git commit -m "Fix secrets access by using env vars"# Raw SQL vs ORM Query Comparison
 
 This document highlights the differences between performing raw SQL queries and using an Object-Relational Memory (ORM) library like SQLAlchemy, as demonstrated in our codebase.
 
