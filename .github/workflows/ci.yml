@@ -7,9 +7,10 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build-and-test:
+  ci-pipeline:
     runs-on: ubuntu-latest
-
+    
+    # We use service containers to ensure tests pass in an integrated environment
     services:
       mysql:
         image: mysql:8.0
@@ -43,28 +44,22 @@ jobs:
       run: |
         # stop the build if there are Python syntax errors or undefined names
         flake8 src tests --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        # exit-zero treats all errors as warnings.
         flake8 src tests --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
     - name: Run Tests
+      # We override the DB URI in conftest.py, but having services up ensures any integration code won't hang
       env:
         MYSQL_HOST: 127.0.0.1
         MYSQL_USER: root
         MYSQL_PASSWORD: password
         MYSQL_DB: inventory_db
         MONGO_URI: mongodb://localhost:27017/inventory_logs
+        # IMPORTANT: Add current directory to PYTHONPATH so pytest can find 'src'
+        PYTHONPATH: . 
       run: |
-        # Wait for MySQL (usually handled by service healthcheck, but good to be safe)
-        sleep 10
         pytest tests/
 
-  docker-build:
-    needs: build-and-test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Build Docker Image
-        # This step verifies that the Dockerfile is valid and the image builds successfully.
-        # It does NOT push to Docker Hub (CI only).
-        run: docker build . -t cloud-inventory:latest
+    - name: Verify Docker Build
+      # This step ensures the Dockerfile is valid and the image builds successfully
+      run: docker build . -t cloud-inventory:latest

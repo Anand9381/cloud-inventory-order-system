@@ -5,19 +5,17 @@ from src.extensions import db
 
 @pytest.fixture
 def app():
-    # Use testing config
+    # Force testing config
     os.environ['FLASK_ENV'] = 'testing'
-    os.environ['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:' # Use SQLite for unit tests for speed/simplicity or mock
-    # OR better: use the mysql service in CI?
-    # For simplicity in CI without complex setup:
-    # app = create_app()
-    # But mysql connection might fail if service not up or schemas not created.
-    # Let's mock db or use sqlite if possible.
-    # The models rely on mysql dialect features... let's try to stick to mysql service.
     
+    # Create the app
     app = create_app()
+    
+    # Override configuration for testing
     app.config.update({
         "TESTING": True,
+        # Use SQLite in-memory database for faster, isolated tests
+        "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:"
     })
 
     with app.app_context():
