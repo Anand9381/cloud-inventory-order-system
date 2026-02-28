@@ -62,12 +62,15 @@ jobs:
     needs: build-and-test
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    env:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
       - uses: actions/checkout@v3
 
       - name: Log in to Docker Hub
-        # Only run this step if secrets are available
-        if: secrets.DOCKER_USERNAME != '' && secrets.DOCKER_PASSWORD != ''
+        # Check env variable presence instead of secrets context directly in 'if'
+        if: env.DOCKER_USERNAME != '' && env.DOCKER_PASSWORD != ''
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
@@ -77,9 +80,9 @@ jobs:
         run: docker build . -t cloud-inventory:latest
 
       - name: Tag Docker Image
-        if: secrets.DOCKER_USERNAME != ''
+        if: env.DOCKER_USERNAME != ''
         run: docker tag cloud-inventory:latest ${{ secrets.DOCKER_USERNAME }}/cloud-inventory:${{ github.sha }}
 
       - name: Push Docker Image
-        if: secrets.DOCKER_USERNAME != '' && secrets.DOCKER_PASSWORD != ''
+        if: env.DOCKER_USERNAME != '' && env.DOCKER_PASSWORD != ''
         run: docker push ${{ secrets.DOCKER_USERNAME }}/cloud-inventory:${{ github.sha }}
