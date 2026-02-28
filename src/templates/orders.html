@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between mb-4">
+    <h2>Order History</h2>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <table class="table table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Date</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Items</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>#{{ order.id }}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-user text-muted me-2"></i>
+                            <div>{{ order.customer.username }}</div> 
+                        </div>
+                    </td>
+                    <td>{{ order.order_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td class="fw-bold text-success">${{ "%.2f"|format(order.total_amount) }}</td>
+                    <td>
+                        {% if order.status == 'Completed' %}
+                            <span class="badge bg-success">Completed</span>
+                        {% elif order.status == 'Cancelled' %}
+                            <span class="badge bg-secondary">Cancelled</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <small class="text-muted">{{ order.items|length }} items</small>
+                    </td>
+                    <td>
+                        {% if order.status == 'Pending' %}
+                        <button class="btn btn-sm btn-success" onclick="updateStatus({{ order.id }}, 'Completed')" title="Complete"><i class="fas fa-check"></i></button>
+                        <button class="btn btn-sm btn-warning" onclick="updateStatus({{ order.id }}, 'Cancelled')" title="Cancel"><i class="fas fa-ban"></i></button>
+                        {% endif %}
+                        <button class="btn btn-sm btn-danger" onclick="deleteOrder({{ order.id }})" title="Delete"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted">No orders found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+async function updateStatus(id, status) {
+    const res = await fetch('/api/orders/' + id, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({status: status})
+    });
+    if(res.ok) location.reload(); else alert('Failed to update');
+}
+async function deleteOrder(id) {
+    if(confirm('Delete Order #' + id + '?')) {
+        const res = await fetch('/api/orders/' + id, {method: 'DELETE'});
+        if(res.ok) location.reload(); else alert('Failed to delete');
+    }
+}
+</script>
+{% endblock %}

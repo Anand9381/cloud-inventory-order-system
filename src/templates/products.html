@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between mb-4">
+    <h2>Product Catalog</h2>
+    <div class="btn-group">
+        <button class="btn btn-primary" onclick="alert('Feature via API')"><i class="fas fa-plus"></i> Add Product</button>
+        <button class="btn btn-secondary" onclick="location.reload()"><i class="fas fa-sync"></i> Refresh</button>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <table class="table table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>SKU</th>
+                    <th>Price</th>
+                    <th>Stock (SQL)</th>
+                    <th>Inventory Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td>#{{ product.id }}</td>
+                    <td class="fw-bold">{{ product.name }}</td>
+                    <td><span class="badge bg-secondary">{{ product.sku }}</span></td>
+                    <td>${{ "%.2f"|format(product.price) }}</td>
+                    <td>{{ product.inventory.quantity if product.inventory else 0 }}</td>
+                    <td>
+                        {% set qty = product.inventory.quantity if product.inventory else 0 %}
+                        {% if qty > 10 %}
+                            <span class="badge bg-success">In Stock</span>
+                        {% elif qty > 0 %}
+                            <span class="badge bg-warning text-dark">Low Stock</span>
+                        {% else %}
+                            <span class="badge bg-danger">Out of Stock</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteProduct({{ product.id }})"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted">No products found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    async function deleteProduct(id) {
+        if(confirm('Are you sure? This cannot be undone.')) {
+            const res = await fetch('/api/products/' + id, {method: 'DELETE'});
+            if(res.ok) location.reload(); else alert('Failed to delete');
+        }
+    }
+</script>
+{% endblock %}

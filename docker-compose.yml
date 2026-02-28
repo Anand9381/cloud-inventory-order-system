@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./src:/app/src
+      - ./seed.py:/app/seed.py
+    environment:
+      - MYSQL_HOST=db
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=password
+      - MYSQL_DB=inventory_db
+      # - MONGO_URI=mongodb+srv://anand123:anand123@cluster0.vyrrifu.mongodb.net/inventory_logs?retryWrites=true&w=majority&appName=Cluster0
+      - MONGO_URI=mongodb://mongo:27017/inventory_logs
+      - FLASK_APP=src/app.py
+      - FLASK_ENV=development
+    depends_on:
+      - db
+      - mongo
+    networks:
+      - inventory-network
+
+  db:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: inventory_db
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./db/mysql_data:/var/lib/mysql
+    networks:
+      - inventory-network
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  mongo:
+    image: mongo:latest
+    restart: always
+    ports:
+      - "27019:27017" # Mapped to 27019 to avoid conflict if you have local mongo running
+    volumes:
+      - ./db/mongo_data_unique:/data/db
+    networks:
+      - inventory-network
+
+networks:
+  inventory-network:
+    driver: bridge

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between mb-4">
+    <h2>Activity Logs (MongoDB)</h2>
+    <span class="badge bg-info text-dark align-self-center">NoSQL Data Source</span>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white">
+        <div class="row">
+            <div class="col-md-4">
+                <input type="text" class="form-control form-control-sm" placeholder="Search logs...">
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+            {% for log in logs %}
+            <div class="list-group-item">
+                <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1 text-primary">{{ log.action }}</h6>
+                    <small class="text-muted">{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+                </div>
+                <p class="mb-1">{{ log.details }}</p>
+                <small class="text-muted">User ID: {{ log.user_id }}</small>
+            </div>
+            {% else %}
+            <div class="list-group-item text-center text-muted">No logs found in MongoDB.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
