@@ -6,6 +6,7 @@ from src.models import User, Product, Inventory, Order, OrderItem
 import os
 
 def create_app():
+    print("Starting application with configuration:")
     app = Flask(__name__)
     app.config.from_object(Config)
 
